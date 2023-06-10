@@ -1,13 +1,13 @@
 from tkinter import *
 from tkinter import messagebox as tmsg
 from tkinter import ttk
+from playsound import playsound
 import string
 import random
-
-
+import requests
 
 root = Tk()
-root.geometry("1150x650")
+root.geometry("1150x750")
 root.title("Hangman")
 root.resizable(False, False)
 
@@ -21,18 +21,18 @@ hangman5 = PhotoImage(file = "./hangman5.png")
 hangman6 = PhotoImage(file = "./hangman6.png")
 
 lst = [hangman0,hangman1,hangman2,hangman3,hangman4,hangman5,hangman6]
+x = requests.get('https://random-word-api.herokuapp.com/word')
 
 chances = Label(root,image = hangman0)
 chances.pack()
 
 #tu ide apipipipip
-#fraza/rijec da len(s razmacima) bude <= 26 
-word = "ETIEN NIJE MAJMUN"
-
+#fraza/rijec da len(s razmacima) bude <= 26
+word = x.text[2:-2].upper()
 random_word = []
 check_word = []
 
-word_label = Label(root,text = check_word,font= ("comicsans",25,"bold"))
+word_label = Label(root,text = check_word,font= ("comicsans",30,"bold"))
 word_label.pack()
 
 
@@ -42,19 +42,18 @@ def res():
         global word
         global random_word
         global check_word
-        #i tu ide api
-        #opet len <= 26
-        word = "IPAK JE MAJMUN"
+        global x
+        x = requests.get('https://random-word-api.herokuapp.com/word')
         chances.configure(image = lst[0])
         random_word = []
         check_word = []
-                
+        word = x.text[2:-2].upper()
         for i in range(len(word)):
                 if(word[i] != ' '): check_word.append('_')
                 else: check_word.append(' ')
                 
         random_word = [x for x in word]
-        word_label.configure(text=' '.join(check_word))
+        word_label.configure(text=' '.join(check_word), fg = "BLACK")
         num = 1;
 
 
@@ -92,7 +91,7 @@ def hi(temp):
         global num
         global random_word
         global check_word
-
+        global word
         rt = 1
         if temp.capitalize() in random_word:
                 for ind in range(len(random_word)):
@@ -103,13 +102,19 @@ def hi(temp):
         else :
                         rt = 0
                         if(num >= len(lst)):
-                                tmsg.showinfo("Better luck next time","        You lose        ")
+                                vrati = "The word was " + word
+                                playsound("./tuzno.mp3")
+                                word_label.configure(text=' '.join(random_word), fg = "RED")
+                                tmsg.showinfo("You lose", vrati)
+                                disab()
                         else:
                                 chances.configure(image= lst[num])
                                 num += 1
 
         
         if "_" not in check_word:
+                word_label.configure(text=' '.join(check_word), fg = "GREEN")
+                playsound("./win.mp3")
                 tmsg.showinfo("Well played","      You win       ")
                 disab()
         return rt
